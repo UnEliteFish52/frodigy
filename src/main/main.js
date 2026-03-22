@@ -1,0 +1,128 @@
+const path = require('path');
+const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
+const { initializeDatabase } = require('./db');
+const { registerAllHandlers } = require('./ipc-handlers');
+
+let mainWindow = null;
+let tray = null;
+let isQuitting = false;
+
+function createMainWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    minWidth: 980,
+    minHeight: 640,
+    backgroundColor: '#0f172a',
+    show: false,
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false
+    }
+  });
+
+  mainWindow.setMenuBarVisibility(false);
+
+  mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+
+  mainWindow.on('ready-to-show', () => {
+    mainWindow.show();
+  });
+
+  mainWindow.on('close', (event) => {
+    if (isQuitting) {
+      return;
+    }
+
+    event.preventDefault();
+    mainWindow.hide();
+  });
+}
+
+function createTray() {
+  const trayIconPath = path.join(__dirname, '..', '..', 'calendar_notes.png');
+  let icon = nativeImage.createFromPath(trayIconPath);
+
+  if (icon.isEmpty()) {
+    icon = nativeImage.createEmpty();
+  }
+
+  tray = new Tray(icon);
+  tray.setToolTip('Frodigy');
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Open Frodigy',
+      click: () => {
+        if (!mainWindow) {
+          return;
+        }
+
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    },
+    {
+      type: 'separator'
+    },
+    {
+      label: 'Quit',
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      }
+    }
+  ]);
+
+  tray.setContextMenu(contextMenu);
+
+  tray.on('double-click', () => {
+    if (!mainWindow) {
+      return;
+    }
+
+    if (mainWindow.isVisible()) {
+      mainWindow.hide();
+      return;
+    }
+
+    mainWindow.show();
+    mainWindow.focus();
+  });
+}
+
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
+app.whenReady()
+  .then(() => {
+    initializeDatabase(app.getPath('userData'));
+    registerAllHandlers();
+    createMainWindow();
+    createTray();
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createMainWindow();
+      } else if (mainWindow) {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    });
+  })
+  .catch((error) => {
+    console.error('Failed to initialize Frodigy app:', error);
+    app.quit();
+  });
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    return;
+  }
+
+  app.quit();
+});
