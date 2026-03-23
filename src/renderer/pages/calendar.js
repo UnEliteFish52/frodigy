@@ -153,7 +153,7 @@ async function renderCalendar(container) {
   await loadNote(calState.selectedDate);
 }
 
-function rebuildCalGrid() {
+async function rebuildCalGrid() {
   const grid = document.getElementById('cal-grid');
   const titleEl = document.getElementById('cal-month-title');
   titleEl.textContent = `${MONTH_NAMES[calState.month]} ${calState.year}`;
@@ -165,6 +165,8 @@ function rebuildCalGrid() {
   const daysInMonth = new Date(calState.year, calState.month + 1, 0).getDate();
 
   let html = DAY_HEADERS.map(d => `<div class="cal-header-cell">${d}</div>`).join('');
+
+  const notesWithContent = await window.frodigy.invoke('notes:get-month', { year: calState.year, month: calState.month + 1 });
 
   // Blank cells for days before month starts
   for (let i = 0; i < firstDay; i++) {
@@ -184,6 +186,7 @@ function rebuildCalGrid() {
     if (isSelected && !isToday) classes += ' selected';
     if (isWeekend) classes += ' weekend';
     if (isBoldDay) classes += ' bold-day';
+    if (notesWithContent.includes(dateISO)) classes += ' has-note';
 
     html += `<div class="${classes}" data-date="${dateISO}">${day}</div>`;
   }

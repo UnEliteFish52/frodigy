@@ -4,8 +4,8 @@
 
 const THEMES = [
   { id: 'neon_abyss', label: 'Neon Abyss' },
-  { id: 'royal_indigo', label: 'Royal Indigo' },
   { id: 'high_contrast', label: 'High Contrast' },
+  { id: 'vibrant_gold', label: 'Golden Horizon' },
 ];
 
 const WEEKEND_OPTIONS = [
@@ -36,7 +36,7 @@ async function renderSettings(container) {
         </div>
         <div class="radio-group" id="theme-radios">
           ${THEMES.map(t => `
-            <div class="radio-option ${t.id === currentTheme ? 'selected' : ''}" data-theme="${t.id}">
+            <div class="radio-option ${t.id === currentTheme ? 'selected' : ''}" data-theme-val="${t.id}">
               <div class="radio-circle"><div class="radio-circle-inner"></div></div>
               <span>${t.label}</span>
             </div>
@@ -71,7 +71,7 @@ async function renderSettings(container) {
   // Theme radio handlers
   container.querySelectorAll('.radio-option').forEach(el => {
     el.addEventListener('click', async () => {
-      const theme = el.dataset.theme;
+      const theme = el.dataset.themeVal;
       container.querySelectorAll('.radio-option').forEach(r => r.classList.remove('selected'));
       el.classList.add('selected');
       await window.frodigy.invoke('settings:set', { key: 'theme', value: theme });

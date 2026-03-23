@@ -4,11 +4,13 @@
 
 const pages = {
   dashboard: renderDashboard,
+  schedule: renderSchedule,
   calendar: renderCalendar,
   timers: renderTimers,
   completed: renderCompleted,
   summary: renderSummary,
   settings: renderSettings,
+  about: renderAbout,
 };
 
 const pageContent = document.getElementById('page-content');
@@ -42,13 +44,63 @@ window.addEventListener('hashchange', () => {
   navigateTo(getPageFromHash());
 });
 
-// Keyboard shortcuts (Ctrl+1 through Ctrl+6)
-const pageKeys = ['dashboard', 'calendar', 'timers', 'completed', 'summary', 'settings'];
+// Keyboard shortcuts
+const pageKeys = ['dashboard', 'schedule', 'calendar', 'timers', 'completed', 'summary', 'settings', 'about'];
 document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key >= '1' && e.key <= '6') {
+  // Ctrl + 1-8
+  if (e.ctrlKey && e.key >= '1' && e.key <= '8') {
     e.preventDefault();
     const page = pageKeys[parseInt(e.key, 10) - 1];
     window.location.hash = '#' + page;
+    return;
+  }
+
+  // Ctrl + Tab
+  if (e.ctrlKey && e.key === 'Tab') {
+    e.preventDefault();
+    const currentPage = getPageFromHash();
+    let currentIndex = pageKeys.indexOf(currentPage);
+    if (currentIndex === -1) currentIndex = 0;
+    
+    if (e.shiftKey) {
+      currentIndex = (currentIndex - 1 + pageKeys.length) % pageKeys.length;
+    } else {
+      currentIndex = (currentIndex + 1) % pageKeys.length;
+    }
+    window.location.hash = '#' + pageKeys[currentIndex];
+    return;
+  }
+
+  // Ctrl + Q
+  if (e.ctrlKey && e.key.toLowerCase() === 'q') {
+    e.preventDefault();
+    window.frodigy.invoke('app:hide');
+    return;
+  }
+
+  // Ctrl + T
+  if (e.ctrlKey && e.key.toLowerCase() === 't') {
+    e.preventDefault();
+    if (window.showAddTaskModal) {
+      window.showAddTaskModal('one_time');
+    } else {
+      window.location.hash = '#dashboard';
+      setTimeout(() => {
+        if (window.showAddTaskModal) window.showAddTaskModal('one_time');
+      }, 100);
+    }
+    return;
+  }
+
+  // Ctrl + N
+  if (e.ctrlKey && e.key.toLowerCase() === 'n') {
+    e.preventDefault();
+    window.location.hash = '#calendar';
+    setTimeout(() => {
+      const textarea = document.getElementById('note-textarea');
+      if (textarea) textarea.focus();
+    }, 100);
+    return;
   }
 });
 

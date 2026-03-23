@@ -98,31 +98,45 @@ app.on('before-quit', () => {
   isQuitting = true;
 });
 
-app.whenReady()
-  .then(() => {
-    initializeDatabase(app.getPath('userData'));
-    registerAllHandlers();
-    createMainWindow();
-    createTray();
+const gotTheLock = app.requestSingleInstanceLock();
 
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) {
-        createMainWindow();
-      } else if (mainWindow) {
-        mainWindow.show();
-        mainWindow.focus();
-      }
-    });
-  })
-  .catch((error) => {
-    console.error('Failed to initialize Frodigy app:', error);
-    app.quit();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show();
+      mainWindow.focus();
+    }
   });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    return;
-  }
+  app.whenReady()
+    .then(() => {
+      initializeDatabase(app.getPath('userData'));
+      registerAllHandlers();
+      createMainWindow();
+      createTray();
 
-  app.quit();
-});
+      app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+          createMainWindow();
+        } else if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      });
+    })
+    .catch((error) => {
+      console.error('Failed to initialize Frodigy app:', error);
+      app.quit();
+    });
+
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+      return;
+    }
+
+    app.quit();
+  });
+}

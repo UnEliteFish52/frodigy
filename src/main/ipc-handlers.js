@@ -125,6 +125,13 @@ function registerAllHandlers() {
 
   // ─── DAILY NOTES ────────────────────────────────────────
 
+  ipcMain.handle('notes:get-month', (_event, { year, month }) => {
+    const db = getDatabase();
+    const prefix = `${year}-${String(month).padStart(2, '0')}-%`;
+    const rows = db.prepare('SELECT note_date FROM daily_notes WHERE note_date LIKE ? AND content != \'\'').all(prefix);
+    return rows.map(r => r.note_date);
+  });
+
   ipcMain.handle('notes:get', (_event, { date }) => {
     const db = getDatabase();
     const row = db.prepare('SELECT * FROM daily_notes WHERE note_date = ?').get(date);
@@ -268,6 +275,60 @@ function registerAllHandlers() {
       recentSessions
     };
   });
+
+  // ─── APP CONTROLS ─────────────────────────────────────────
+  ipcMain.handle('app:hide', (event) => {
+    const { BrowserWindow } = require('electron');
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+      win.hide();
+    }
+    return { success: true };
+  });
+  // ─── SCHEDULE ───────────────────────────────────────────
+  ipcMain.handle('schedule:create', (_event, { title, start_time, end_time }) => {
+    const db = getDatabase();
+    const result = db.prepare(
+      'INSERT INTO daily_schedule (title, start_time, end_time, created_at) VALUES (?, ?, ?, ?)'
+    ).run(title, start_time, end_time, nowISO());
+    return { id: result.lastInsertRowid, title, start_time, end_time };
+  });
+
+  ipcMain.handle('schedule:list', () => {
+    const db = getDatabase();
+    return db.prepare('SELECT * FROM daily_schedule ORDER BY start_time ASC').all();
+  });
+
+  ipcMain.handle('schedule:delete', (_event, { id }) => {
+    const db = getDatabase();
+    db.prepare('DELETE FROM daily_schedule WHERE id = ?').run(id);
+    return { success: true };
+  });
+
+  // Schedule Notifier Loop
+  let lastNotifiedMinute = null;
+  setInterval(() => {
+    const nowLocal = new Date();
+    const currentHMS = String(nowLocal.getHours()).padStart(2, '0') + ':' + String(nowLocal.getMinutes()).padStart(2, '0');
+    if (currentHMS !== lastNotifiedMinute) {
+      lastNotifiedMinute = currentHMS;
+      try {
+        const db = getDatabase();
+        if (db) {
+          const rows = db.prepare('SELECT * FROM daily_schedule WHERE start_time = ?').all(currentHMS);
+          for (const row of rows) {
+            new Notification({
+              title: 'Frodigy Schedule',
+              body: `Time for: ${row.title}`,
+              silent: false
+            }).show();
+          }
+        }
+      } catch (err) {
+        // Suppress db not initialized early on
+      }
+    }
+  }, 10000);
 }
 
 module.exports = { registerAllHandlers };

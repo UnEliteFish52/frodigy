@@ -67,6 +67,14 @@ function initializeDatabase(userDataPath) {
       PRIMARY KEY (task_id, completion_date),
       FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS daily_schedule (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      start_time TEXT NOT NULL,
+      end_time TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
   `);
 
   return db;
