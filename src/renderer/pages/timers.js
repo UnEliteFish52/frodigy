@@ -264,7 +264,7 @@ function playTimerAlarm() {
       // Failed to play (e.g. file not found or browser blocked), fallback to beep
       playSynthesizedBeep();
     });
-  } catch(err) {
+  } catch (err) {
     playSynthesizedBeep();
   }
 }
@@ -276,28 +276,28 @@ function playSynthesizedBeep() {
   if (audioCtx.state === 'suspended') {
     audioCtx.resume();
   }
-  
+
   if (alarmInterval) clearInterval(alarmInterval);
-  
+
   const beep = () => {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    
+
     // Create a pleasant but noticeable double-beep ping
     osc.type = 'sine';
     osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
     osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
-    
+
     gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-    
+
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    
+
     osc.start();
     osc.stop(audioCtx.currentTime + 0.3);
   };
-  
+
   beep(); // initial beep
   alarmInterval = setInterval(beep, 1000); // repeat every 1s
 }
@@ -308,7 +308,7 @@ function stopTimerAlarm() {
     customAudio.currentTime = 0;
     customAudio = null;
   }
-  
+
   if (alarmInterval) {
     clearInterval(alarmInterval);
     alarmInterval = null;
@@ -317,7 +317,7 @@ function stopTimerAlarm() {
 
 function showTimerFinishedModal(timerId, timerName) {
   playTimerAlarm();
-  
+
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay timer-finished-overlay';
   overlay.innerHTML = `
@@ -341,4 +341,5 @@ function showTimerFinishedModal(timerId, timerName) {
 
   overlay.querySelector('#modal-dismiss-timer').addEventListener('click', dismiss);
   // Unlike other modals, we DO NOT close on overlay click or Escape key, we force them to click Dismiss.
+}
 }
