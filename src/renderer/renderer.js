@@ -2,15 +2,15 @@
 // Renderer — Page Router & App Initialization
 // ═══════════════════════════════════════════════════════════
 
-const pages = {
-  dashboard: renderDashboard,
-  schedule: renderSchedule,
-  calendar: renderCalendar,
-  timers: renderTimers,
-  completed: renderCompleted,
-  summary: renderSummary,
-  settings: renderSettings,
-  about: renderAbout,
+const pageRenderers = {
+  dashboard: 'renderDashboard',
+  schedule: 'renderSchedule',
+  calendar: 'renderCalendar',
+  timers: 'renderTimers',
+  completed: 'renderCompleted',
+  summary: 'renderSummary',
+  settings: 'renderSettings',
+  about: 'renderAbout',
 };
 
 const pageContent = document.getElementById('page-content');
@@ -28,15 +28,23 @@ async function navigateTo(page) {
 
   // Clear and render
   pageContent.innerHTML = '';
-  const renderFn = pages[page];
+  const renderFnName = pageRenderers[page];
+  const renderFn = renderFnName ? window[renderFnName] : null;
   if (renderFn) {
     await renderFn(pageContent);
+  } else {
+    pageContent.innerHTML = `
+      <div class="page-header">
+        <h1 class="page-title">Page Load Error</h1>
+        <p class="page-subtitle">Unable to load "${page}" page renderer.</p>
+      </div>
+    `;
   }
 }
 
 function getPageFromHash() {
   const hash = window.location.hash.replace('#', '');
-  return pages[hash] ? hash : 'dashboard';
+  return pageRenderers[hash] ? hash : 'dashboard';
 }
 
 // Hash change listener

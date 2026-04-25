@@ -321,9 +321,9 @@ function showTimerFinishedModal(timerId, timerName) {
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay timer-finished-overlay';
   overlay.innerHTML = `
-    <div class="modal timer-finished-modal" style="border: 2px solid var(--primary); box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);">
+    <div class="modal timer-finished-modal" style="border: 2px solid var(--accent-primary); box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);">
       <div style="font-size: 48px; text-align: center; margin-bottom: 16px; animation: pulse 1s infinite alternate;">⏰</div>
-      <h2 class="modal-title" style="text-align: center; color: var(--primary);">Time's Up!</h2>
+      <h2 class="modal-title" style="text-align: center; color: var(--accent-primary);">Time's Up!</h2>
       <p style="text-align:center; margin-bottom: 32px; color: var(--text-muted); font-size: 1.1rem;">
         <strong>${escapeHtmlTimer(timerName)}</strong> has finished.
       </p>
@@ -341,5 +341,4 @@ function showTimerFinishedModal(timerId, timerName) {
 
   overlay.querySelector('#modal-dismiss-timer').addEventListener('click', dismiss);
   // Unlike other modals, we DO NOT close on overlay click or Escape key, we force them to click Dismiss.
-}
 }

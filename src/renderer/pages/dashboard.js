@@ -116,7 +116,7 @@ function renderRecurringTasks(tasks) {
         isCompleted = true;
         const daysLeft = interval - diffDays;
         if (daysLeft === 1) {
-          dueTag = '<span class="due-badge" style="background:var(--primary); color:black;">Tomorrow</span>';
+          dueTag = '<span class="due-badge" style="background:var(--accent-primary); color:black;">Tomorrow</span>';
         } else if (daysLeft > 1) {
           dueTag = `<span class="due-badge" style="background:#3b82f6; color:white;">In ${daysLeft} days</span>`;
         }
